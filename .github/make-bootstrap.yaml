@@ -1,0 +1,32 @@
+name: make-bootstrap
+on:
+  push:
+    branches:
+    - master
+jobs:
+  # https://help.github.com/en/actions/automating-your-workflow-with-github-actions/virtual-environments-for-github-hosted-runners#supported-runners-and-hardware-resources
+  windows:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Run a one-line script
+      run: .\os\win\ci-bootstrap.ps1
+      shell: powershell
+  darwin:
+    runs-on: macos-latest
+    env:
+      GOROOT: /usr/local/go
+      GO111MODULE: auto
+    steps:
+    - uses: actions/checkout@v1
+    - name: Run a one-line script
+      run: chmod +x ./os/mac/bootstrap.sh && ./os/mac/bootstrap.sh
+  linux:
+    runs-on: ubuntu-latest
+    env:
+      GOROOT: /usr/local/go
+      GO111MODULE: auto
+    steps:
+    - uses: actions/checkout@v1
+    - name: Run a one-line script
+      run: chmod +x ./os/mac/bootstrap.sh && ./os/linux/bootstrap.sh

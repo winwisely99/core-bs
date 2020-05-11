@@ -1,0 +1,2 @@
+# core-bs
+core bootstrapper

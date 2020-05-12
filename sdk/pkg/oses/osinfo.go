@@ -5,10 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"github.com/getcouragenow/core-bs/sdk/pkg/common/termutil"
+	m "github.com/pbnjay/memory"
 	"os"
 	"os/exec"
 	"runtime"
-	"strconv"
 	"strings"
 )
 
@@ -49,7 +49,6 @@ type DarwinOSInfo struct {
 
 func getDarwinOsInfo() (*DarwinOSInfo, error) {
 	var osName, kernel, platform, hostname *string
-	var memory float64
 	var err error
 	if osName, err = getUnixOSName(); err != nil {
 		return nil, err
@@ -63,20 +62,14 @@ func getDarwinOsInfo() (*DarwinOSInfo, error) {
 	if hostname, err = getUnixHostname(); err != nil {
 		return nil, err
 	}
-	mem, err := runUnixCmd("sysctl", "-n", "hw.memsize")
-	if err != nil {
-		return nil, err
-	}
-	if memory, err = strconv.ParseFloat(strings.Trim(*mem, "\n"), 64); err != nil {
-		return nil, err
-	}
+	mem := getMemory()
 	core := getCPUCore()
 	return &DarwinOSInfo{
 		osName:   *osName,
 		kernel:   *kernel,
 		platform: *platform,
 		hostName: *hostname,
-		memory:   memory / 1000000,
+		memory:   mem,
 		cores:    core,
 	}, nil
 }
@@ -104,7 +97,6 @@ type LinuxOSInfo struct {
 
 func getLinuxOsInfo() (*LinuxOSInfo, error) {
 	var osName, kernel, platform, hostname *string
-	var memory float64
 	var err error
 	if osName, err = getUnixOSName(); err != nil {
 		return nil, err
@@ -118,19 +110,13 @@ func getLinuxOsInfo() (*LinuxOSInfo, error) {
 	if hostname, err = getUnixHostname(); err != nil {
 		return nil, err
 	}
-	mem, err := runUnixCmd("awk", "/MemTotal/ {print $2}", "/proc/meminfo")
-	if err != nil {
-		return nil, err
-	}
-	if memory, err = strconv.ParseFloat(strings.Trim(*mem, "\n"), 64); err != nil {
-		return nil, err
-	}
+	mem := getMemory()
 	return &LinuxOSInfo{
 		osName:   *osName,
 		kernel:   *kernel,
 		platform: *platform,
 		hostName: *hostname,
-		memory:   memory / 1000,
+		memory:   mem,
 		cores:    getCPUCore(),
 	}, nil
 }
@@ -158,7 +144,6 @@ type WindowsOSInfo struct {
 
 func getWindowsOsInfo() (*WindowsOSInfo, error) {
 	var osName, platform, hostname string
-	var memory float64
 	var err error
 	osName = runtime.GOOS
 	hostname, err = os.Hostname()
@@ -171,19 +156,13 @@ func getWindowsOsInfo() (*WindowsOSInfo, error) {
 	}
 	platformOut := strings.Split(*pl, "\n")
 	platform = platformOut[len(platformOut)-2]
-	mem, err := runUnixCmd("$env:computerName")
-	if err != nil {
-		return nil, err
-	}
-	if memory, err = strconv.ParseFloat(strings.Trim(*mem, "\n"), 64); err != nil {
-		return nil, err
-	}
+	mem := getMemory()
 	return &WindowsOSInfo{
 		osName:   osName,
 		kernel:   "Windows",
 		platform: platform,
 		hostName: hostname,
-		memory:   memory / 1000,
+		memory:   mem,
 		cores:    getCPUCore(),
 	}, nil
 }
@@ -248,4 +227,9 @@ func toContent(o OSInfoGetter) termutil.Contents {
 	ms["Memory"] = []string{fmt.Sprintf("%.2f MiB", o.GetMemory())}
 	ms["Hostname"] = []string{o.GetHostName()}
 	return ms
+}
+
+func getMemory() float64 {
+	mem := m.TotalMemory()
+	return float64(mem) / 1000000
 }

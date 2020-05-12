@@ -29,6 +29,7 @@ func newRootCmd() *cobra.Command {
 		c.NewInstallFishCmd(),
 		c.NewListToolsCmd(),
 		c.NewInitBoilerplateCmd(),
+		c.NewPkgCmd(),
 		// newSelfUpgradeCmd(),
 	)
 	return cmd

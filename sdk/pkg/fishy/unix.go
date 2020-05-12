@@ -3,14 +3,13 @@ package fishy
 import (
 	"errors"
 	"fmt"
+	"github.com/getcouragenow/core-bs/sdk/pkg/common/fetcher"
 	"github.com/getcouragenow/core-bs/sdk/pkg/common/osutil"
-	rh "github.com/hashicorp/go-retryablehttp"
 	log "github.com/sirupsen/logrus"
 	"io"
 	"io/ioutil"
 	"os"
 	"strings"
-	"time"
 )
 
 func (g *GoFishInstallation) getArch() string {
@@ -39,15 +38,13 @@ func (g *GoFishInstallation) downloadBinary(arch string, dldir string) error {
 	dlUrl := fmt.Sprintf("https://gofi.sh/releases/gofish-%s-%s-%s.tar.gz",
 		g.Version, strings.ToLower(g.OSName), arch)
 	log.Infof("Downloading: %s\n", dlUrl)
-	hc := rh.NewClient()
-	hc.RetryMax = 3
-	hc.RetryWaitMax = 3 * time.Second
-	res, err := hc.Get(dlUrl)
+	c := fetcher.NewClient()
+	res, err := c.Fetch(dlUrl, "GET", nil, nil)
 	if err != nil {
 		return err
 	}
 	defer res.Body.Close()
-	f, err := os.Create(fmt.Sprintf("%s/gofish.tar.gz", dldir))
+	f, err := os.Create(fmt.Sprintf("%s/%s.tar.gz", dldir, g.BinName))
 	if err != nil {
 		return err
 	}

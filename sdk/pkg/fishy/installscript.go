@@ -82,21 +82,26 @@ func (g *GoFishInstallation) downloadBinary(d *installationDirs) error {
 }
 
 func (g *GoFishInstallation) installFile(d *installationDirs) error {
+	if err := os.Chdir(d.dlDir); err != nil {
+		return err
+	}
 	file, err := os.Open(d.dlFilePath)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
+	g.l.Debugf("extracting downloaded file: %s", d.dlFilePath)
 	if err = osutil.ExtractTarGz(file); err != nil {
 		return err
 	}
-	g.l.Infof("Installing to %s\n", g.BinPath)
+	g.l.Debugf("reading binary file: %s", d.extractedBinPath)
 	f, err := ioutil.ReadFile(d.extractedBinPath)
 	if err != nil {
 		log.Errorf("Cannot open path: %s: %v\n", d.extractedBinPath,
 			err)
 		return err
 	}
+	g.l.Infof("Installing to %s\n", g.BinPath)
 	return ioutil.WriteFile(d.installDir, f, 0755)
 }
 

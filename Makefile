@@ -7,12 +7,9 @@
 # git include
 
 
-include ./boilerplate/core/help.mk
-
-include ./boilerplate/core/bs.mk
-include ./boilerplate/core/os.mk
-include ./boilerplate/core/gitr.mk
-include ./boilerplate/core/go.mk
+include ./boilerplate/help.mk
+include ./boilerplate/bs.mk
+include ./boilerplate/go.mk
 
 
 # examples of how to override in root make file
@@ -55,23 +52,16 @@ this-print-env-ex:
 
 
 ## Build this.
-this-build: this-dep this-statiks this-scan-statiks
+this-build: this-statiks this-statiks
 	$(MAKE) go-build
 
 ## Delete the build.
-this-build-clean: this-dep-clean
+this-build-clean:
 	rm -rf $(GOPATH)/bin/bs
 
 	# delete all generated stuff
 	rm -rf $(PWD)/statiks
 
-this-dep:
-	# add binaries needs to build
-	go get -u github.com/rakyll/statik
-
-this-dep-clean:
-	rm -rf $(GOPATH)/bin/statik
-
 this-statiks:
-	@statik -src=$(PWD)/boilerplate -ns bp -p bp -dest=$(STATIK_DEST) -f
+	go run sdk/cmd/bp/main.go -t $(PWD)/.tmp -o $(PWD)/statiks
 

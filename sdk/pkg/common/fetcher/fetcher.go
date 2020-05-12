@@ -1,6 +1,7 @@
 package fetcher
 
 import (
+	"github.com/getcouragenow/core-bs/sdk/pkg/common/logger"
 	rh "github.com/hashicorp/go-retryablehttp"
 	"net/http"
 )
@@ -10,10 +11,10 @@ type fetcherClient struct {
 }
 
 // NewClient returns new retryable http client
-func NewClient() *fetcherClient {
-	return &fetcherClient{
-		rh.NewClient(),
-	}
+func NewClient(l *logger.Logger) *fetcherClient {
+	cl := rh.NewClient()
+	cl.Logger = l
+	return &fetcherClient{cl}
 }
 
 // Fetch making http request given url, method and request body.

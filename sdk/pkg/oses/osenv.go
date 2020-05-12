@@ -107,26 +107,26 @@ func (g *gitConfig) GetRoot() string    { return g.root }
 func (g *gitConfig) GetAccount() string { return g.account }
 func (g *gitConfig) ToContent() termutil.Contents {
 	ms := termutil.Contents{}
-	ms["Git Username"] = []string{g.GetName()}
-	ms["Git Email"] = []string{g.GetAccount()}
-	ms["Git URL"] = []string{g.GetRoot()}
+	ms["Git Global User"] = []string{g.GetName()}
+	ms["Git Global Email"] = []string{g.GetAccount()}
+	ms["Git Current URL"] = []string{g.GetRoot()}
 	return ms
 }
 
-type goConfig struct {
+type GoConfig struct {
 	goRoot string
 	goPath string
 }
 
-func initGoConfig() *goConfig {
-	return &goConfig{
+func initGoConfig() *GoConfig {
+	return &GoConfig{
 		runtime.GOROOT(),
 		os.Getenv("GOPATH"),
 	}
 }
-func (g *goConfig) GoRoot() string { return g.goRoot }
-func (g *goConfig) GoPath() string { return g.goPath }
-func (g *goConfig) ToContent() termutil.Contents {
+func (g *GoConfig) GoRoot() string { return g.goRoot }
+func (g *GoConfig) GoPath() string { return g.goPath }
+func (g *GoConfig) ToContent() termutil.Contents {
 	ms := termutil.Contents{}
 	ms["GOROOT"] = []string{g.GoRoot()}
 	ms["GOPATH"] = []string{g.GoPath()}
@@ -135,7 +135,7 @@ func (g *goConfig) ToContent() termutil.Contents {
 
 type UserOsEnv struct {
 	osProperties *osProperties
-	goEnv        *goConfig
+	goEnv        *GoConfig
 	gitUser      *gitConfig
 }
 
@@ -159,7 +159,7 @@ func InitUserOsEnv() (*UserOsEnv, error) {
 func (u *UserOsEnv) GetGoPath() string              { return u.goEnv.GoPath() }
 func (u *UserOsEnv) GetGitUser() *gitConfig         { return u.gitUser }
 func (u *UserOsEnv) GetGoRoot() string              { return u.goEnv.GoRoot() }
-func (u *UserOsEnv) GetGoEnv() *goConfig            { return u.goEnv }
+func (u *UserOsEnv) GetGoEnv() *GoConfig            { return u.goEnv }
 func (u *UserOsEnv) GetOsProperties() *osProperties { return u.osProperties }
 
 func (u *UserOsEnv) PrintUserOsEnv() error {

@@ -20,7 +20,7 @@ func (g *GoFishInstallation) getArch() string {
 		return "arm64"
 	} else if platform == "x86" || platform == "i686" || platform == "386" {
 		return "386"
-	} else if platform == "x86_64" {
+	} else if platform == "x86_64" || platform == "amd64" {
 		return "amd64"
 	}
 	return ""
@@ -34,17 +34,45 @@ func (g *GoFishInstallation) verifySupported() bool {
 	return false
 }
 
-func (g *GoFishInstallation) downloadBinary(arch string, dldir string) error {
+type installationDirs struct {
+	installDir       string
+	dlDir            string
+	dlFilePath       string
+	dlURL            string
+	extractedDir     string
+	extractedBinPath string
+}
+
+func (g *GoFishInstallation) determineDirs(arch string) *installationDirs {
 	dlUrl := fmt.Sprintf("https://gofi.sh/releases/gofish-%s-%s-%s.tar.gz",
-		g.Version, strings.ToLower(g.OSName), arch)
-	log.Infof("Downloading: %s\n", dlUrl)
-	c := fetcher.NewClient()
-	res, err := c.Fetch(dlUrl, "GET", nil, nil)
+		g.Version, g.OSName, arch)
+	dlDir := g.tempDir
+	extractedDir := fmt.Sprintf(
+		`%s%s%s-%s`, dlDir, g.separator, g.OSName, arch)
+	installDir := fmt.Sprintf("%s%s%s",
+		g.BinPath, g.separator, g.BinName)
+	tarFile := fmt.Sprintf("%s%s%s.tar.gz",
+		dlDir, g.separator, g.PkgName)
+	extractedBinPath := fmt.Sprintf("%s%s%s",
+		extractedDir, g.separator, g.BinName)
+	return &installationDirs{
+		installDir:       installDir,
+		dlDir:            dlDir,
+		dlFilePath:       tarFile,
+		dlURL:            dlUrl,
+		extractedDir:     extractedDir,
+		extractedBinPath: extractedBinPath,
+	}
+}
+
+func (g *GoFishInstallation) downloadBinary(d *installationDirs) error {
+	c := fetcher.NewClient(g.l)
+	res, err := c.Fetch(d.dlURL, "GET", nil, nil)
 	if err != nil {
 		return err
 	}
 	defer res.Body.Close()
-	f, err := os.Create(fmt.Sprintf("%s/%s.tar.gz", dldir, g.BinName))
+	f, err := os.Create(d.dlFilePath)
 	if err != nil {
 		return err
 	}
@@ -53,44 +81,43 @@ func (g *GoFishInstallation) downloadBinary(arch string, dldir string) error {
 	return err
 }
 
-func (g *GoFishInstallation) installFile(arch, dldir string) error {
-	extractDir := fmt.Sprintf("%s/%s-%s", dldir, strings.ToLower(g.OSName), arch)
-	installDir := fmt.Sprintf("%s/%s", g.BinPath, g.BinName)
-	tarFile := fmt.Sprintf("%s/%s.tar.gz", dldir, g.BinName)
-	if err := os.Chdir(dldir); err != nil {
-		return err
-	}
-	file, err := os.Open(tarFile)
+func (g *GoFishInstallation) installFile(d *installationDirs) error {
+	file, err := os.Open(d.dlFilePath)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
-	if err := osutil.ExtractTarGz(file); err != nil {
+	if err = osutil.ExtractTarGz(file); err != nil {
 		return err
 	}
-	if err := os.Remove(tarFile); err != nil {
-		return err
-	}
-	log.Infof("Installing to %s\n", extractDir)
-	f, err := ioutil.ReadFile(fmt.Sprintf("%s/gofish", extractDir))
+	g.l.Infof("Installing to %s\n", g.BinPath)
+	f, err := ioutil.ReadFile(d.extractedBinPath)
 	if err != nil {
-		log.Errorf("Cannot open path: %s: %v\n", extractDir, err)
+		log.Errorf("Cannot open path: %s: %v\n", d.extractedBinPath,
+			err)
 		return err
 	}
-	if err := ioutil.WriteFile(installDir, f, 0755); err != nil {
+	return ioutil.WriteFile(d.installDir, f, 0755)
+}
+
+func (g *GoFishInstallation) cleanDownloadedDirs(d *installationDirs) error {
+	if err := os.Remove(d.dlFilePath); err != nil {
 		return err
 	}
-	return os.RemoveAll(extractDir)
+	return os.RemoveAll(d.extractedDir)
 }
 
 func (g *GoFishInstallation) runInstallScript() error {
 	arch := g.getArch()
-	dldir := "/tmp"
 	if !g.verifySupported() {
 		return errors.New("architecture is not supported")
 	}
-	if err := g.downloadBinary(arch, dldir); err != nil {
+	dirs := g.determineDirs(arch)
+	if err := g.downloadBinary(dirs); err != nil {
 		return err
 	}
-	return g.installFile(arch, dldir)
+	if err := g.installFile(dirs); err != nil {
+		return err
+	}
+	return g.cleanDownloadedDirs(dirs)
 }

@@ -15,3 +15,16 @@ func Exists(path string) (bool, error) {
 	}
 	return true, err
 }
+
+func CheckAndMakeDir(path string) error {
+	exists, err := Exists(path)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		if err := os.MkdirAll(path, 0755); err != nil {
+			return err
+		}
+	}
+	return nil
+}

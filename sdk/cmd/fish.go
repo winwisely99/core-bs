@@ -28,18 +28,22 @@ func NewInstallFishCmd() *cobra.Command {
 		Long:  long,
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			l := getLoggerFromContext(cmd.Context())
+			l = l.AddFields(map[string]interface{}{
+				"cmd": "fish",
+			})
 			newUserInfo, err := oses.InitUserOsEnv()
 			if err != nil {
 				return err
 			}
-			gf := fishy.NewGoFishInstall(newUserInfo)
+			gf := fishy.NewGoFishInstall(l, newUserInfo)
 			if installOpt {
-				if err := gf.InstallGoFish(); err != nil {
+				if err = gf.InstallGoFish(); err != nil {
 					return err
 				}
 				// Post Installation
 				gf.GofishInit()
-				if err := gf.InitGoFish(); err != nil {
+				if err = gf.InitGoFish(); err != nil {
 					return err
 				}
 				_, err = fmt.Fprintf(os.Stdout, fmt.Sprintf(`

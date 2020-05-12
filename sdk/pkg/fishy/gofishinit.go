@@ -3,10 +3,11 @@ package fishy
 import (
 	"fmt"
 	"github.com/getcouragenow/core-bs/sdk/pkg/common/gitutil"
+	"github.com/getcouragenow/core-bs/sdk/pkg/common/logger"
 	"github.com/getcouragenow/core-bs/sdk/pkg/common/osutil"
 	"github.com/getcouragenow/core-bs/sdk/pkg/oses"
-	log "github.com/sirupsen/logrus"
 	"os"
+	"strings"
 )
 
 const (
@@ -14,49 +15,90 @@ const (
 )
 
 type GoFishInstallation struct {
-	BinName  string
-	OrgName  string
-	Repo     string
-	BinPath  string
-	SrcPath  string
-	FishRepo string
-	Platform string
-	Version  string
-	OSName   string
-	userDir  string
+	PkgName      string
+	BinName      string
+	OrgName      string
+	Repo         string
+	BinPath      string
+	SrcPath      string
+	FishRepo     string
+	Platform     string
+	Version      string
+	OSName       string
+	separator    string
+	userDir      string
+	tempDir      string
+	osProperties oses.OSInfoGetter
+	l            *logger.Logger
 }
 
-func NewGoFishInstall(u *oses.UserOsEnv) *GoFishInstallation {
-	binName := "gofish"
+func NewGoFishInstall(l *logger.Logger, u *oses.UserOsEnv) *GoFishInstallation {
+	pkgName := "gofish"
 	orgName := "fishworks"
-	gitRepo := fmt.Sprintf("github.com/%s/%s", orgName, binName)
+	gitRepo := fmt.Sprintf("github.com/%s/%s", orgName, pkgName)
 	goPath := u.GetGoEnv().GoPath()
+	osName := strings.ToLower(u.GetOsProperties().GetOsInfo().GetOsName())
+	separator := setSeparator(osName)
 	if goPath == "" {
-		os.Setenv("GOPATH", fmt.Sprintf("%s/%s", u.GetOsProperties().GetRoot(), "workspace/go/"))
+		os.Setenv("GOPATH", setGoPath(osName, u.GetOsProperties().GetRoot()))
 	}
-	return &GoFishInstallation{
-		Platform: u.GetOsProperties().GetOsInfo().GetPlatform(),
-		BinName:  binName,
-		OrgName:  orgName,
-		Repo:     gitRepo,
-		BinPath:  u.GetGoPath() + "/bin",
-		SrcPath:  u.GetGoPath() + "/gofish",
-		FishRepo: "https://github.com/getcouragenow/core-fish",
-		Version:  "v0.11.0",
-		OSName:   u.GetOsProperties().GetOsInfo().GetOsName(),
-		userDir:  u.GetOsProperties().GetRoot(),
+	g := &GoFishInstallation{
+		Platform:     u.GetOsProperties().GetOsInfo().GetPlatform(),
+		PkgName:      pkgName,
+		OrgName:      orgName,
+		Repo:         gitRepo,
+		BinPath:      goPath + separator + "bin",
+		SrcPath:      goPath + separator + "gofish",
+		FishRepo:     "https://github.com/getcouragenow/core-fish",
+		Version:      "v0.11.0",
+		OSName:       osName,
+		userDir:      u.GetOsProperties().GetRoot(),
+		osProperties: u.GetOsProperties().GetOsInfo(),
+		separator:    separator,
+		l:            l,
 	}
+	g = g.setDirs()
+	return g
+}
+
+func setSeparator(osname string) string {
+	switch osname {
+	case "windows":
+		return `\`
+	default:
+		return "/"
+	}
+}
+
+func setGoPath(sep, userdir string) string {
+	return fmt.Sprintf(`%s%s%s%s%s`, userdir, sep,
+		`workspace`, sep, "go")
+}
+
+func (g *GoFishInstallation) setDirs() *GoFishInstallation {
+	osName := strings.ToLower(g.osProperties.GetOsName())
+	switch osName {
+	case "windows":
+		g.BinName = g.PkgName + ".exe"
+		g.tempDir = g.userDir + `\AppData\Local`
+	default:
+		g.BinName = g.PkgName
+		g.tempDir = "/tmp"
+	}
+	return g
 }
 
 func (g *GoFishInstallation) InstallGoFish() error {
-	log.Infof("Installing gofish to GOPATH dir")
+	g.l.Debugf("Installing gofish to GOPATH dir")
 	// clean it up first
 	g.cleanGoFishGit()
 	return g.runInstallScript()
 }
 
 func (g *GoFishInstallation) GofishInit() error {
-	_, err := osutil.RunUnixCmd(`gofish`, `init`)
+	g.l.Debugf("Running gofish init")
+	_, err := osutil.RunUnixCmd(true,
+		`gofish`, `init`)
 	return err
 }
 
@@ -69,7 +111,7 @@ func (g *GoFishInstallation) InitGoFish() error {
 	if err := g.SetFishRig(); err != nil {
 		return err
 	}
-	return gitutil.GitClone(g.FishRepo, g.SrcPath)
+	return gitutil.GitClone(g.l, g.FishRepo, g.SrcPath)
 }
 
 func (g *GoFishInstallation) UninstallGoFish() error {
@@ -77,9 +119,9 @@ func (g *GoFishInstallation) UninstallGoFish() error {
 }
 
 func (g *GoFishInstallation) cleanGoFishGit() error {
-	os.RemoveAll("/usr/local/gofish")
-	os.RemoveAll(fmt.Sprintf("%s/.%s", g.userDir, g.BinName))
-	gitutil.GitRemove(g.SrcPath)
-	gitutil.GitRemove(g.BinPath + "/" + g.BinName)
+	gitutil.GitRemove(g.l, "/usr/local/gofish")
+	gitutil.GitRemove(g.l, fmt.Sprintf("%s/.%s", g.userDir, g.BinName))
+	gitutil.GitRemove(g.l, g.SrcPath)
+	gitutil.GitRemove(g.l, g.BinPath+"/"+g.BinName)
 	return nil
 }

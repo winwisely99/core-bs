@@ -1,15 +1,13 @@
 package oses
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
+	"github.com/getcouragenow/core-bs/sdk/pkg/common/osutil"
 	"github.com/getcouragenow/core-bs/sdk/pkg/common/termutil"
 	m "github.com/pbnjay/memory"
 	"os"
-	"os/exec"
 	"runtime"
-	"strings"
 )
 
 // Blanket os info getter for all OSes (including windows)
@@ -150,12 +148,7 @@ func getWindowsOsInfo() (*WindowsOSInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	pl, err := runUnixCmd("cmd.exe", "/C", "wmic OS get OSArchitecture")
-	if err != nil {
-		return nil, err
-	}
-	platformOut := strings.Split(*pl, "\n")
-	platform = platformOut[len(platformOut)-2]
+	platform = runtime.GOARCH
 	mem := getMemory()
 	return &WindowsOSInfo{
 		osName:   osName,
@@ -180,18 +173,7 @@ func (w *WindowsOSInfo) ToContent() termutil.Contents { return toContent(w) }
 
 // blanket implementation for Unices / *nix-like OSes 
 func runUnixCmd(cmdName string, flags ...string) (*string, error) {
-	cmd := exec.Command(cmdName, flags...)
-	cmd.Stdin = strings.NewReader(" ")
-	var out bytes.Buffer
-	var stderr bytes.Buffer
-	cmd.Stdout = &out
-	cmd.Stderr = &stderr
-	err := cmd.Run()
-	if err != nil {
-		return nil, err
-	}
-	output := strings.TrimSpace(out.String())
-	return &output, nil
+	return osutil.RunUnixCmd(false, cmdName, flags...)
 }
 
 func getUnixUname(flag string) (*string, error) {

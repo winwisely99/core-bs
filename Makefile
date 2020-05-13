@@ -2,23 +2,19 @@
 # This make file uses composition to keep things KISS and easy.
 # In the boilerpalte make files dont do any includes, because you will create multi permutations of possibilities.
 
-
-
-# git include
-
-
+# includes
 include ./boilerplate/help.mk
-include ./boilerplate/bs.mk
 include ./boilerplate/go.mk
 
 
 # examples of how to override in root make file
 override GO_FSPATH = $(PWD)
-override GO_BUILD_OUT_FSPATH = $(GOPATH)/bin/bs
+override GO_BUILD_OUT_FSPATH = $(GOPATH)/bin
+override GO_BUILD_OUT_ALL_FSPATH = $(PWD)/targets
 override BS_ROOT_FSPATH = XXX
 GO_ARCH=go-arch
 override GO_ARCH=go-arch_override
-
+override GO_BIN_NAME=bs
 
 STATIK_DEST = $(PWD)/statiks
 
@@ -26,12 +22,6 @@ STATIK_DEST = $(PWD)/statiks
 
 ## Print all settings
 this-print:
-	$(MAKE) bs-print
-
-	$(MAKE) os-print
-	
-	$(MAKE) gitr-print
-
 	$(MAKE) go-print
 
 ## Example to Print Variable override from make
@@ -52,13 +42,20 @@ this-print-env-ex:
 
 
 ## Build this.
-this-build: this-statiks this-statiks
+this-build: this-statiks
 	$(MAKE) go-build
+
+## Build for all arch and platforms
+this-build-all: this-statiks
+	$(MAKE) go-build-all
+
+## Delete all of the builds
+this-build-clean-all:
+	$(MAKE) go-build-clean-all
 
 ## Delete the build.
 this-build-clean:
-	rm -rf $(GOPATH)/bin/bs
-
+	$(MAKE) go-build-clean
 	# delete all generated stuff
 	rm -rf $(PWD)/statiks
 

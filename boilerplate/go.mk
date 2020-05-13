@@ -1,14 +1,32 @@
 # go utils
 
 # variables
+# Binary Name
+GO_BIN_NAME == ???
+
 # Path to operate on
 GO_FSPATH == ???
 
-# Path to build binary to.
+# Path to build single binary to.
 GO_BUILD_OUT_FSPATH = ???
 
 # Packages to operate one
 GO_PKG_LIST = ???
+
+# Path to build all binaries to
+GO_BUILD_OUT_ALL_FSPATH = ???
+
+# Supported Platforms
+GO_PLATFORMS=darwin windows
+
+# Supported Architectures (on other platforms than linux)
+GO_ARCHITECTURES=386 amd64
+
+# Other supported platforms
+GO_LINUX_PLATFORMS=linux
+
+# Supported Linux Architectures
+GO_LINUX_ARCHITECTURES=386 amd64 arm arm64
 
 ## Print
 go-print: 
@@ -17,6 +35,9 @@ go-print:
 	@echo GO_FSPATH: 				$(GO_FSPATH)
 	@echo GO_PKG_LIST: 				$(GO_PKG_LIST)
 	@echo GO_BUILD_OUT_FSPATH: 		$(GO_BUILD_OUT_FSPATH)
+	@echo GO_PLATFORMS:             $(GO_PLATFORMS) linux
+	@echo GO_ARCHITECTURES:         $(GO_ARCHITECTURES)
+	@echo GO_LINUX_ARCHITECTURES    $(GO_LINUX_ARCHITECTURES)
 	@echo
 
 
@@ -30,7 +51,29 @@ go-boilerplate-update:
 ## Build the code
 go-build:
 	@echo Building
-	cd $(GO_FSPATH) && go build -v -o $(GO_BUILD_OUT_FSPATH) .
+	cd $(GO_FSPATH) && go build -v -o $(GO_BUILD_OUT_FSPATH)/$(GO_BIN_NAME) .
+
+## Remove build
+go-build-clean:
+	@echo "Removing build"
+	rm -rf $(GO_BUILD_OUT_FSPATH)/$(GO_BIN_NAME)
+
+## Cross-compile to Supported Archs and OSes
+go-build-all:
+	@echo "Building All Supported Architectures & Platforms"
+	mkdir -p $(GO_BUILD_OUT_ALL_FSPATH)
+	cd $(GO_FSPATH)
+	$(foreach GOOS, $(GO_PLATFORMS),\
+	$(foreach GOARCH, $(GO_ARCHITECTURES), $(shell export GOOS=$(GOOS); export GOARCH=$(GOARCH); \
+		go build -v -o $(GO_BUILD_OUT_ALL_FSPATH)/$(GO_BIN_NAME)-$(GOOS)-$(GOARCH) $(GO_FSPATH))))
+	$(foreach GOOS, $(GO_LINUX_PLATFORMS),\
+	$(foreach GOARCH, $(GO_LINUX_ARCHITECTURES), $(shell export GOOS=$(GOOS); export GOARCH=$(GOARCH); \
+		go build -v -o $(GO_BUILD_OUT_ALL_FSPATH)/$(GO_BIN_NAME)-$(GOOS)-$(GOARCH) $(GO_FSPATH))))
+
+## Clean / remove cross-compile directory
+go-build-clean-all:
+	@echo "Cleaning all builds"
+	rm -rf $(GO_BUILD_OUT_ALL_FSPATH)
 
 ## Run the code
 go-run:

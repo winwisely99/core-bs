@@ -12,27 +12,14 @@ import (
 	"path/filepath"
 )
 
-func checkAndMakeDir(path string) error {
-	exists, err := osutil.Exists(path)
-	if err != nil {
-		return err
-	}
-	if !exists {
-		if err := os.MkdirAll(path, 0755); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 func writeAllFiles(fsys http.FileSystem, outputPath string) error {
-	if err := checkAndMakeDir(outputPath); err != nil {
+	if err := osutil.CheckAndMakeDir(outputPath); err != nil {
 		return err
 	}
 	if err := fs.Walk(fsys, "/", func(filePath string, fileInfo os.FileInfo, err error) error {
 		newPath := path.Join(outputPath, filePath)
 		if fileInfo.IsDir() {
-			if err := checkAndMakeDir(newPath); err != nil {
+			if err := osutil.CheckAndMakeDir(newPath); err != nil {
 				return fmt.Errorf("creating directory %q: %w", newPath, err)
 			}
 		} else {

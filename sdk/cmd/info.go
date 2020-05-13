@@ -10,6 +10,10 @@ func NewOsInfoCmd() *cobra.Command {
 		Use:   "info",
 		Short: "prints os info",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			l := getLoggerFromContext(cmd.Context())
+			l.AddFields(map[string]interface{}{
+				"subcommand": "info",
+			})
 			newUserInfo, err := oses.InitUserOsEnv()
 			if err != nil {
 				return err

@@ -1,0 +1,52 @@
+name: Test-Outputs
+on:
+  push:
+    branches: [ ci ]
+jobs:
+  build:
+    name: Test bs outputs
+    runs-on: ubuntu-latest
+    steps:
+      - name: setup env
+        shell: bash
+        run: |
+          echo "::set-env name=GOPATH::${{ github.workspace }}/go"
+          echo "::add-path::${{ github.workspace }}/go/bin"
+          mkdir -p ${{ github.workspace }}/go/{src,bin,pkg}
+
+      - name: Set up Go 1.x
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.13
+        id: go
+
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+
+      - name: Get dependencies
+        run: |
+          go get -v -t -d ./...
+          if [ -f Gopkg.toml ]; then
+              curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+              dep ensure
+          fi
+      - name: Build All Platforms
+        run: make this-build
+
+      - name: Test Info Outputs
+        run: bs info
+
+      - name: Test Install gofish
+        run: bs fish -i
+
+      - name: Check gofish is installed
+        run: which gofish
+
+      - name: Run gofish install
+        run: bs pkg install kubernetes-secret-decode
+
+      - name: Run gofish uninstall
+        run: bs pkg uninstall kubernetes-secret-decode
+
+      - name: Test uninstall gofish
+        run: bs fish -u

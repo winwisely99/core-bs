@@ -9,7 +9,7 @@ see boilerplate directory in bootstrap to see the content.
 import (
 	"github.com/getcouragenow/core-bs/sdk/pkg/common/embed"
 	"github.com/getcouragenow/core-bs/sdk/pkg/common/logger"
-	_ "github.com/getcouragenow/core-bs/statiks/statik"
+	// _ "github.com/getcouragenow/core-bs/statiks/statik"
 	"github.com/rakyll/statik/fs"
 	"net/http"
 )

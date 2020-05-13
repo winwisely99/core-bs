@@ -42,11 +42,11 @@ this-print-env-ex:
 
 
 ## Build this.
-this-build: this-statiks
+this-build:
 	$(MAKE) go-build
 
 ## Build for all arch and platforms
-this-build-all: this-statiks
+this-build-all:
 	$(MAKE) go-build-all
 
 ## Delete all of the builds
@@ -59,6 +59,6 @@ this-build-clean:
 	# delete all generated stuff
 	rm -rf $(PWD)/statiks
 
-this-statiks:
-	go run sdk/cmd/bp/main.go -t $(PWD)/.tmp -o $(PWD)/statiks
+#this-statiks:
+#	go run sdk/cmd/bp/main.go -t $(PWD)/.tmp -o $(PWD)/statiks
 

@@ -2,16 +2,12 @@ package fishy
 
 import (
 	"fmt"
-	"github.com/getcouragenow/core-bs/sdk/pkg/common/gitutil"
+	home "github.com/fishworks/gofish/pkg/home"
 	"github.com/getcouragenow/core-bs/sdk/pkg/common/logger"
 	"github.com/getcouragenow/core-bs/sdk/pkg/common/osutil"
 	"github.com/getcouragenow/core-bs/sdk/pkg/oses"
-	"os"
+	"path/filepath"
 	"strings"
-)
-
-const (
-	bsFishes = "github.com/getcouragenow/core-fish"
 )
 
 type GoFishInstallation struct {
@@ -25,7 +21,6 @@ type GoFishInstallation struct {
 	Platform     string
 	Version      string
 	OSName       string
-	separator    string
 	userDir      string
 	tempDir      string
 	osProperties oses.OSInfoGetter
@@ -36,43 +31,24 @@ func NewGoFishInstall(l *logger.Logger, u *oses.UserOsEnv) *GoFishInstallation {
 	pkgName := "gofish"
 	orgName := "fishworks"
 	gitRepo := fmt.Sprintf("github.com/%s/%s", orgName, pkgName)
-	goPath := u.GetGoEnv().GoPath()
 	osName := strings.ToLower(u.GetOsProperties().GetOsInfo().GetOsName())
-	separator := setSeparator(osName)
-	if goPath == "" {
-		os.Setenv("GOPATH", setGoPath(osName, u.GetOsProperties().GetRoot()))
-	}
+	gopath := u.GetGoPath()
 	g := &GoFishInstallation{
 		Platform:     u.GetOsProperties().GetOsInfo().GetPlatform(),
 		PkgName:      pkgName,
 		OrgName:      orgName,
 		Repo:         gitRepo,
-		BinPath:      goPath + separator + "bin",
-		SrcPath:      goPath + separator + "gofish",
+		BinPath:      gopath.Path("bin"),
+		SrcPath:      gopath.Path("gofish"),
 		FishRepo:     "https://github.com/getcouragenow/core-fish",
 		Version:      "v0.11.0",
 		OSName:       osName,
 		userDir:      u.GetOsProperties().GetRoot(),
 		osProperties: u.GetOsProperties().GetOsInfo(),
-		separator:    separator,
 		l:            l,
 	}
 	g = g.setDirs()
 	return g
-}
-
-func setSeparator(osname string) string {
-	switch osname {
-	case "windows":
-		return `\`
-	default:
-		return "/"
-	}
-}
-
-func setGoPath(sep, userdir string) string {
-	return fmt.Sprintf(`%s%s%s%s%s`, userdir, sep,
-		`workspace`, sep, "go")
 }
 
 func (g *GoFishInstallation) setDirs() *GoFishInstallation {
@@ -80,7 +56,7 @@ func (g *GoFishInstallation) setDirs() *GoFishInstallation {
 	switch osName {
 	case "windows":
 		g.BinName = g.PkgName + ".exe"
-		g.tempDir = g.userDir + `\AppData\Local`
+		g.tempDir = filepath.Join(g.userDir, `AppData\Local`)
 	default:
 		g.BinName = g.PkgName
 		g.tempDir = "/tmp"
@@ -97,21 +73,15 @@ func (g *GoFishInstallation) InstallGoFish() error {
 
 func (g *GoFishInstallation) GofishInit() error {
 	g.l.Debugf("Running gofish init")
-	_, err := osutil.RunUnixCmd(true,
-		`gofish`, `init`)
-	return err
-}
-
-func (g *GoFishInstallation) SetFishRig() error {
-	os.Setenv("GOFISH_RIGS", g.SrcPath)
-	return os.Setenv("GOFISH_DEFAULT_RIG", fmt.Sprintf("%s/%s", g.SrcPath, "core-fish"))
-}
-
-func (g *GoFishInstallation) InitGoFish() error {
-	if err := g.SetFishRig(); err != nil {
+	_, err := osutil.RunUnixCmd(true, `gofish`, `init`)
+	if err != nil {
 		return err
 	}
-	return gitutil.GitClone(g.l, g.FishRepo, g.SrcPath)
+	if _, err = osutil.RunUnixCmd(true, `gofish`, `rig`,
+		`add`, g.FishRepo); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (g *GoFishInstallation) UninstallGoFish() error {
@@ -119,9 +89,11 @@ func (g *GoFishInstallation) UninstallGoFish() error {
 }
 
 func (g *GoFishInstallation) cleanGoFishGit() error {
-	gitutil.GitRemove(g.l, "/usr/local/gofish")
-	gitutil.GitRemove(g.l, fmt.Sprintf("%s/.%s", g.userDir, g.BinName))
-	gitutil.GitRemove(g.l, g.SrcPath)
-	gitutil.GitRemove(g.l, g.BinPath+"/"+g.BinName)
+	// $HOME/.gofish
+	osutil.RemoveDir(g.l, filepath.Join(g.userDir, fmt.Sprintf(".%s", g.BinName)))
+	// $GOPATH/bin/gofish
+	osutil.RemoveDir(g.l, filepath.Join(g.BinPath, g.BinName))
+	// /usr/local/gofish
+	osutil.RemoveDir(g.l, filepath.Join(home.HomePrefix, g.BinName))
 	return nil
 }

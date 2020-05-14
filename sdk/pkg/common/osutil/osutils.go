@@ -1,6 +1,7 @@
 package osutil
 
 import (
+	"github.com/getcouragenow/core-bs/sdk/pkg/common/logger"
 	"os"
 )
 
@@ -27,4 +28,10 @@ func CheckAndMakeDir(path string) error {
 		}
 	}
 	return nil
+}
+
+func RemoveDir(l *logger.Logger, path string) error {
+	l.Infof("Removing directory....%s", path)
+	_, err := SudoRunUnixCmd(true, `rm`, `-rf`, path)
+	return err
 }

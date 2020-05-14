@@ -56,9 +56,16 @@ func RunUnixCmd(displayOutput bool, cmdName string, flags ...string) (*string, e
 	return &buf, nil
 }
 
+func SudoRunUnixCmd(displayOutput bool, cmdName string, flags ...string) (*string, error) {
+	newCmdName := `sudo`
+	newFlags := []string{cmdName}
+	newFlags = append(newFlags, flags...)
+	return RunUnixCmd(displayOutput, newCmdName, newFlags...)
+}
+
 // WalkPath gets all the directory names in the specified directory
 // returns all the directory paths that contains a Makefile.
-//func WalkPath(l *logger.Logger, dir string) (dirs map[string]string, err error) {
+// func WalkPath(l *logger.Logger, dir string) (dirs map[string]string, err error) {
 //	dirs = map[string]string{}
 //	l.Infof("Scanning : %s\n", dir)
 //	var allDirs []string
@@ -97,7 +104,7 @@ func RunUnixCmd(displayOutput bool, cmdName string, flags ...string) (*string, e
 //		}
 //	}
 //	return dirs, err
-//}
+// }
 
 func ExtractTarGz(gzipStream io.Reader) error {
 	uncompressedStream, err := gzip.NewReader(gzipStream)

@@ -3,7 +3,6 @@ package gitutil
 import (
 	"github.com/getcouragenow/core-bs/sdk/pkg/common/colorutil"
 	"github.com/getcouragenow/core-bs/sdk/pkg/common/logger"
-	"github.com/getcouragenow/core-bs/sdk/pkg/common/osutil"
 	gg "github.com/go-git/go-git/v5"
 	"strings"
 )
@@ -55,10 +54,4 @@ func GitRemoteInfo(dir string) (string, error) {
 	sse := strings.Split(sses[0], "\t")
 	s = sse[1]
 	return s, nil
-}
-
-func GitRemove(l *logger.Logger, dir string) error {
-	l.Infof("Removing directory....")
-	_, err := osutil.RunUnixCmd(true, `rm`, `-rf`, dir)
-	return err
 }

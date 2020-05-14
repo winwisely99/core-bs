@@ -9,6 +9,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -47,14 +48,11 @@ func (g *GoFishInstallation) determineDirs(arch string) *installationDirs {
 	dlUrl := fmt.Sprintf("https://gofi.sh/releases/gofish-%s-%s-%s.tar.gz",
 		g.Version, g.OSName, arch)
 	dlDir := g.tempDir
-	extractedDir := fmt.Sprintf(
-		`%s%s%s-%s`, dlDir, g.separator, g.OSName, arch)
-	installDir := fmt.Sprintf("%s%s%s",
-		g.BinPath, g.separator, g.BinName)
-	tarFile := fmt.Sprintf("%s%s%s.tar.gz",
-		dlDir, g.separator, g.PkgName)
-	extractedBinPath := fmt.Sprintf("%s%s%s",
-		extractedDir, g.separator, g.BinName)
+	extractedDir := filepath.Join(dlDir, fmt.Sprintf(
+		`%s-%s`, g.OSName, arch))
+	installDir := filepath.Join(g.BinPath, g.BinName)
+	tarFile := filepath.Join(dlDir, g.PkgName)
+	extractedBinPath := filepath.Join(extractedDir, g.BinName)
 	return &installationDirs{
 		installDir:       installDir,
 		dlDir:            dlDir,

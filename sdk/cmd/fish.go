@@ -1,13 +1,10 @@
 package cmd
 
 import (
-	"fmt"
-	"github.com/getcouragenow/core-bs/sdk/pkg/common/colorutil"
 	"github.com/getcouragenow/core-bs/sdk/pkg/fishy"
 	"github.com/getcouragenow/core-bs/sdk/pkg/oses"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 const (
@@ -43,14 +40,6 @@ func NewInstallFishCmd() *cobra.Command {
 				}
 				// Post Installation
 				gf.GofishInit()
-				if err = gf.InitGoFish(); err != nil {
-					return err
-				}
-				_, err = fmt.Fprintf(os.Stdout, fmt.Sprintf(`
-				Please change GOFISH_RIGS environment variable to point to
-					%s and GOFISH_DEFAULT_RIG to %s/%s
-				in your shell profile.
-			`, colorutil.ColorYellow(gf.SrcPath), colorutil.ColorCyan(gf.SrcPath), colorutil.ColorCyan("core-fish")))
 				return err
 			}
 			if uninstallOpt {

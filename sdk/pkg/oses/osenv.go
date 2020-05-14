@@ -6,10 +6,12 @@ Package oses is for getting os, user, and git information
 
 import (
 	"fmt"
+	"github.com/fishworks/gofish/pkg/lazypath"
 	"github.com/getcouragenow/core-bs/sdk/pkg/common/gitutil"
 	"github.com/getcouragenow/core-bs/sdk/pkg/common/termutil"
 	"os"
 	"os/user"
+	"path/filepath"
 	"runtime"
 )
 
@@ -114,23 +116,38 @@ func (g *gitConfig) ToContent() termutil.Contents {
 }
 
 type GoConfig struct {
-	goRoot string
-	goPath string
+	goRoot lazypath.LazyPath
+	goPath lazypath.LazyPath
 }
 
 func initGoConfig() *GoConfig {
+	root := lazypath.LazyPath{
+		EnvironmentVariable: "GOROOT",
+		DefaultFn:           runtime.GOROOT,
+	}
+	goPath := lazypath.LazyPath{
+		EnvironmentVariable: "GOPATH",
+		DefaultFn:           setGoPath,
+	}
 	return &GoConfig{
-		runtime.GOROOT(),
-		os.Getenv("GOPATH"),
+		root,
+		goPath,
 	}
 }
-func (g *GoConfig) GoRoot() string { return g.goRoot }
-func (g *GoConfig) GoPath() string { return g.goPath }
+func (g *GoConfig) GoRoot() lazypath.LazyPath { return g.goRoot }
+func (g *GoConfig) GoPath() lazypath.LazyPath { return g.goPath }
 func (g *GoConfig) ToContent() termutil.Contents {
 	ms := termutil.Contents{}
-	ms["GOROOT"] = []string{g.GoRoot()}
-	ms["GOPATH"] = []string{g.GoPath()}
+	ms["GOROOT"] = []string{g.GoRoot().Path()}
+	ms["GOPATH"] = []string{g.GoPath().Path()}
 	return ms
+}
+func setGoPath() string {
+	if gp := os.Getenv("GOPATH"); gp != "" {
+		return gp
+	}
+	u, _ := user.Current()
+	return filepath.Join(u.HomeDir, "workspace", "go")
 }
 
 type UserOsEnv struct {
@@ -156,9 +173,9 @@ func InitUserOsEnv() (*UserOsEnv, error) {
 	}, nil
 }
 
-func (u *UserOsEnv) GetGoPath() string              { return u.goEnv.GoPath() }
+func (u *UserOsEnv) GetGoPath() lazypath.LazyPath   { return u.goEnv.GoPath() }
 func (u *UserOsEnv) GetGitUser() *gitConfig         { return u.gitUser }
-func (u *UserOsEnv) GetGoRoot() string              { return u.goEnv.GoRoot() }
+func (u *UserOsEnv) GetGoRoot() lazypath.LazyPath   { return u.goEnv.GoRoot() }
 func (u *UserOsEnv) GetGoEnv() *GoConfig            { return u.goEnv }
 func (u *UserOsEnv) GetOsProperties() *osProperties { return u.osProperties }
 

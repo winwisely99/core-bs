@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/fishworks/gofish/pkg/lazypath"
 	"github.com/getcouragenow/core-bs/sdk/pkg/common/gitutil"
+	"github.com/getcouragenow/core-bs/sdk/pkg/common/osutil"
 	"github.com/getcouragenow/core-bs/sdk/pkg/common/termutil"
 	"os"
 	"os/user"
@@ -80,7 +81,7 @@ type gitConfig struct {
 }
 
 func initGitConfig() (*gitConfig, error) {
-	userName, err := runUnixCmd("git", "config", "user.name")
+	userName, err := RunCmd("git", "config", "user.name")
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +93,7 @@ func initGitConfig() (*gitConfig, error) {
 	if root == "" {
 		root = "Not a git dir"
 	}
-	account, err := runUnixCmd("git", "config", "user.email")
+	account, err := RunCmd("git", "config", "user.email")
 	if err != nil {
 		return nil, err
 	}
@@ -147,7 +148,9 @@ func setGoPath() string {
 		return gp
 	}
 	u, _ := user.Current()
-	return filepath.Join(u.HomeDir, "workspace", "go")
+	workpaceGo := filepath.Join(u.HomeDir, "workspace", "go")
+	osutil.CheckAndMakeDir(workpaceGo)
+	return workpaceGo
 }
 
 type UserOsEnv struct {

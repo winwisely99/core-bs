@@ -26,7 +26,7 @@ func newRootCmd() *cobra.Command {
 	}
 	cmd.AddCommand(
 		c.NewOsInfoCmd(),
-		c.NewInstallFishCmd(),
+		c.NewInitCmd(),
 		c.NewListToolsCmd(),
 		// c.NewInitBoilerplateCmd(), // it's not going to be used here.
 		c.NewPkgCmd(),

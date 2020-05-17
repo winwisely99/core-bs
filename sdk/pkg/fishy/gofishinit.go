@@ -1,8 +1,10 @@
 package fishy
 
 import (
+	"context"
 	"fmt"
 	home "github.com/fishworks/gofish/pkg/home"
+	ctx2 "github.com/getcouragenow/core-bs/sdk/pkg/common/ctx"
 	"github.com/getcouragenow/core-bs/sdk/pkg/common/logger"
 	"github.com/getcouragenow/core-bs/sdk/pkg/common/osutil"
 	"github.com/getcouragenow/core-bs/sdk/pkg/oses"
@@ -27,7 +29,8 @@ type GoFishInstallation struct {
 	l            *logger.Logger
 }
 
-func NewGoFishInstall(l *logger.Logger, u *oses.UserOsEnv) *GoFishInstallation {
+func NewGoFishInstall(ctx context.Context, u *oses.UserOsEnv) *GoFishInstallation {
+	l := ctx2.GetLogger(ctx)
 	pkgName := "gofish"
 	orgName := "fishworks"
 	gitRepo := fmt.Sprintf("github.com/%s/%s", orgName, pkgName)
@@ -73,14 +76,15 @@ func (g *GoFishInstallation) InstallGoFish() error {
 
 func (g *GoFishInstallation) GofishInit() error {
 	g.l.Debugf("Running gofish init")
-	_, err := osutil.RunUnixCmd(true, `gofish`, `init`)
+	_, err := osutil.RunCmd(true, `gofish`, `init`)
 	if err != nil {
 		return err
 	}
-	if _, err = osutil.RunUnixCmd(true, `gofish`, `rig`,
-		`add`, g.FishRepo); err != nil {
-		return err
-	}
+	// TODO: add core-fish
+	//if _, err = osutil.RunCmd(true, `gofish`, `rig`,
+	//	`add`, g.FishRepo); err != nil {
+	//	return err
+	//}
 	return nil
 }
 

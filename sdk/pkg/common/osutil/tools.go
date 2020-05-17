@@ -34,7 +34,7 @@ func PrintBinaryPath(binname string) (string, error) {
 }
 
 // blanket implementation for Unices / *nix-like OSes
-func RunUnixCmd(displayOutput bool, cmdName string, flags ...string) (*string, error) {
+func RunCmd(displayOutput bool, cmdName string, flags ...string) (*string, error) {
 	cmd := exec.Command(cmdName, flags...)
 	var stdoutBuf, stderrBuf bytes.Buffer
 
@@ -56,11 +56,11 @@ func RunUnixCmd(displayOutput bool, cmdName string, flags ...string) (*string, e
 	return &buf, nil
 }
 
-func SudoRunUnixCmd(displayOutput bool, cmdName string, flags ...string) (*string, error) {
+func SudoRunCmd(displayOutput bool, cmdName string, flags ...string) (*string, error) {
 	newCmdName := `sudo`
 	newFlags := []string{cmdName}
 	newFlags = append(newFlags, flags...)
-	return RunUnixCmd(displayOutput, newCmdName, newFlags...)
+	return RunCmd(displayOutput, newCmdName, newFlags...)
 }
 
 // WalkPath gets all the directory names in the specified directory

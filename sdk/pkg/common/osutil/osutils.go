@@ -32,6 +32,6 @@ func CheckAndMakeDir(path string) error {
 
 func RemoveDir(l *logger.Logger, path string) error {
 	l.Infof("Removing directory....%s", path)
-	_, err := SudoRunUnixCmd(true, `rm`, `-rf`, path)
+	_, err := SudoRunCmd(true, `rm`, `-rf`, path)
 	return err
 }

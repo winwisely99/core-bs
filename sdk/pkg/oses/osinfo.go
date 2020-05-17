@@ -172,12 +172,12 @@ func (w *WindowsOSInfo) String() string {
 func (w *WindowsOSInfo) ToContent() termutil.Contents { return toContent(w) }
 
 // blanket implementation for Unices / *nix-like OSes 
-func runUnixCmd(cmdName string, flags ...string) (*string, error) {
-	return osutil.RunUnixCmd(false, cmdName, flags...)
+func RunCmd(cmdName string, flags ...string) (*string, error) {
+	return osutil.RunCmd(false, cmdName, flags...)
 }
 
 func getUnixUname(flag string) (*string, error) {
-	return runUnixCmd("uname", flag)
+	return RunCmd("uname", flag)
 }
 
 func getUnixPlatform() (*string, error) {

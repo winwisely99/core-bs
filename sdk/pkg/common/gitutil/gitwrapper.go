@@ -4,6 +4,7 @@ import (
 	"github.com/getcouragenow/core-bs/sdk/pkg/common/colorutil"
 	"github.com/getcouragenow/core-bs/sdk/pkg/common/logger"
 	gg "github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
 	"strings"
 )
 
@@ -14,7 +15,11 @@ func GitClone(l *logger.Logger, url, dir string) error {
 		RecurseSubmodules: gg.DefaultSubmoduleRecursionDepth,
 	})
 	if err != nil {
-		return err
+		if err == gg.ErrRepositoryAlreadyExists {
+			return GitPull(l, dir, "master")
+		} else {
+			return err
+		}
 	}
 	rev, err := r.Head()
 	if err != nil {
@@ -23,6 +28,21 @@ func GitClone(l *logger.Logger, url, dir string) error {
 	l.Infof("Successfully cloned: %s, sha: %s\n",
 		url, colorutil.ColorGreen(rev.Hash()))
 	return nil
+}
+
+func GitCheckout(l *logger.Logger, dir, tag string) error {
+	l.Infof("Checkout: %s\n", colorutil.ColorGreen(tag))
+	r, err := gg.PlainOpen(dir)
+	if err != nil {
+		return err
+	}
+	w, err := r.Worktree()
+	if err != nil {
+		return err
+	}
+	return w.Checkout(&gg.CheckoutOptions{
+		Branch: plumbing.ReferenceName(tag),
+	})
 }
 
 func GitPull(l *logger.Logger, dir, tag string) error {

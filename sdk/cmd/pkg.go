@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"context"
+	"github.com/getcouragenow/core-bs/sdk/pkg/common/ctx"
 	"github.com/getcouragenow/core-bs/sdk/pkg/common/pkgutil"
 	"github.com/spf13/cobra"
 )
@@ -11,9 +13,9 @@ var (
 
 func NewPkgCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use: "pkg [install|uninstall|search|rigs] <pkgname>",
-		Short: usage,
-		Long: usage,
+		Use:          "pkg [install|uninstall|search|rigs] <pkgname>",
+		Short:        usage,
+		Long:         usage,
 		SilenceUsage: false,
 	}
 
@@ -29,16 +31,17 @@ func NewPkgCmd() *cobra.Command {
 
 func installCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use: "install <pkgname>",
+		Use:   "install <pkgname>",
 		Short: "install 3rd party package",
-		Long: "install 3rd party package",
-		Args: cobra.MinimumNArgs(1),
+		Long:  "install 3rd party package",
+		Args:  cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			l := getLoggerFromContext(cmd.Context())
+			l := ctx.GetLogger(cmd.Context())
 			l.AddFields(map[string]interface{}{
 				"subcommand": "install",
 			})
-			p, err := pkgutil.NewPkgUtil(l)
+			newCtx := context.WithValue(cmd.Context(), "logger", l)
+			p, err := pkgutil.NewPkgUtil(newCtx, nil)
 			if err != nil {
 				return err
 			}
@@ -48,19 +51,19 @@ func installCmd() *cobra.Command {
 	return cmd
 }
 
-
 func uninstallCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use: "uninstall <pkgname>",
+		Use:   "uninstall <pkgname>",
 		Short: "uninstall 3rd party package",
-		Long: "uninstall 3rd party package",
-		Args: cobra.MinimumNArgs(1),
+		Long:  "uninstall 3rd party package",
+		Args:  cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			l := getLoggerFromContext(cmd.Context())
+			l := ctx.GetLogger(cmd.Context())
 			l.AddFields(map[string]interface{}{
 				"subcommand": "uninstall",
 			})
-			p, err := pkgutil.NewPkgUtil(l)
+			newCtx := context.WithValue(cmd.Context(), "logger", l)
+			p, err := pkgutil.NewPkgUtil(newCtx, nil)
 			if err != nil {
 				return err
 			}
@@ -72,16 +75,17 @@ func uninstallCmd() *cobra.Command {
 
 func searchCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use: "search <pkgname>",
+		Use:   "search <pkgname>",
 		Short: "search 3rd party package",
-		Long: "search 3rd party package",
-		Args: cobra.ExactArgs(1),
+		Long:  "search 3rd party package",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			l := getLoggerFromContext(cmd.Context())
+			l := ctx.GetLogger(cmd.Context())
 			l.AddFields(map[string]interface{}{
 				"subcommand": "search",
 			})
-			p, err := pkgutil.NewPkgUtil(l)
+			newCtx := context.WithValue(cmd.Context(), "logger", l)
+			p, err := pkgutil.NewPkgUtil(newCtx, nil)
 			if err != nil {
 				return err
 			}
@@ -93,16 +97,17 @@ func searchCmd() *cobra.Command {
 
 func rigsCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use: "rigs <operation>",
+		Use:   "rigs <operation>",
 		Short: "rigs [list,add,remove,path]",
-		Long: "rigs [list,add,remove,path]",
-		Args: cobra.MinimumNArgs(1),
+		Long:  "rigs [list,add,remove,path]",
+		Args:  cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			l := getLoggerFromContext(cmd.Context())
+			l := ctx.GetLogger(cmd.Context())
 			l.AddFields(map[string]interface{}{
 				"subcommand": "rigs",
 			})
-			p, err := pkgutil.NewPkgUtil(l)
+			newCtx := context.WithValue(cmd.Context(), "logger", l)
+			p, err := pkgutil.NewPkgUtil(newCtx, nil)
 			if err != nil {
 				return err
 			}
@@ -114,16 +119,17 @@ func rigsCmd() *cobra.Command {
 
 func updateCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use: "update <pkgname>",
+		Use:   "update <pkgname>",
 		Short: "update <pkgname>",
-		Long: "update <pkgname>",
-		Args: cobra.ExactArgs(1),
+		Long:  "update <pkgname>",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			l := getLoggerFromContext(cmd.Context())
+			l := ctx.GetLogger(cmd.Context())
 			l.AddFields(map[string]interface{}{
 				"subcommand": "update",
 			})
-			p, err := pkgutil.NewPkgUtil(l)
+			newCtx := context.WithValue(cmd.Context(), "logger", l)
+			p, err := pkgutil.NewPkgUtil(newCtx, nil)
 			if err != nil {
 				return err
 			}

@@ -10,7 +10,7 @@ func runMake(args ...string) error {
 	for _, v := range args {
 		newArgs = append(newArgs, v)
 	}
-	_, err := osutil.RunUnixCmd(`make`, newArgs...)
+	_, err := osutil.RunCmd(`make`, newArgs...)
 	if err != nil {
 		log.Error(err)
 		return err

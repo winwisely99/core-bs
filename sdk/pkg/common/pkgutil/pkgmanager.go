@@ -35,7 +35,9 @@ func (b *brew) Setup() error {
 	_, err := osutil.RunCmd(
 		true, `xcode-select`, `--install`,
 	)
-	if err != nil{ return err}
+	if err != nil {
+		return err
+	}
 	_, err = osutil.RunCmd(
 		true,
 		"/bin/bash",
@@ -91,7 +93,9 @@ func (s *scoop) Setup() error {
 		true,
 		"iwr", `-useb, get.scoop.sh | iex`,
 	)
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 
 	_, err = osutil.RunCmd(
 		true,
@@ -101,7 +105,9 @@ func (s *scoop) Setup() error {
 		true,
 		"scoop", `bucket add java`,
 	)
-	if err = s.Install("aria2"); err != nil { return err }
+	if err = s.Install("aria2"); err != nil {
+		return err
+	}
 	_, err = osutil.RunCmd(
 		true,
 		"scoop", `config aria2-enabled true`,
@@ -141,13 +147,12 @@ func (s *scoop) Update(pkg string) error {
 }
 
 func (a *apt) Setup() error {
-	_, err := osutil.SudoRunCmd(
+	osutil.SudoRunCmd(
 		true,
 		`apt`, `update`, `-y`,
 	)
-	if err != nil { return err }
-	_, err = osutil.SudoRunCmd(true, `apt`, `dist-upgrade`, `-y`)
-	return err
+	osutil.SudoRunCmd(true, `apt`, `dist-upgrade`, `-y`)
+	return nil
 }
 
 func (a *apt) String() string {
@@ -155,36 +160,37 @@ func (a *apt) String() string {
 }
 
 func (a *apt) CleanCache() error {
-	_, err := osutil.SudoRunCmd(
-		true, `apt-get`, `clean` ,`-y`)
-	return err
+	osutil.SudoRunCmd(
+		true, `apt-get`, `clean`, `-y`)
+	return nil
 }
 
 func (a *apt) Search(pkg string) (*string, error) {
-	return osutil.RunCmd(true, `apt`, `search`, pkg)
+	osutil.RunCmd(true, `apt`, `search`, pkg)
+	return nil, nil
 }
 
 func (a *apt) Install(pkgs ...string) error {
 	flags := append([]string{"install", "-y"}, pkgs...)
-	_, err := osutil.SudoRunCmd(true, `apt`, flags...)
-	return err
+	osutil.SudoRunCmd(true, `apt`, flags...)
+	return nil
 }
 
 func (a *apt) Uninstall(pkgs ...string) error {
 	flags := append([]string{"purge", "-y"}, pkgs...)
-	_, err := osutil.SudoRunCmd(true, `apt`, flags...)
-	return err
+	osutil.SudoRunCmd(true, `apt`, flags...)
+	return nil
 }
 
 func (a *apt) Upgrade() error {
-	_, err := osutil.SudoRunCmd(true, `apt`, `upgrade`, `-y`)
-	return err
+	osutil.SudoRunCmd(true, `apt`, `upgrade`, `-y`)
+	return nil
 }
 
 func (a *apt) Update(pkg string) error {
-	_, err := osutil.SudoRunCmd(true, `apt`,
+	osutil.SudoRunCmd(true, `apt`,
 		`upgrade`, `-y`)
-	return err
+	return nil
 }
 
 func (d *dnf) Setup() error {
@@ -193,7 +199,7 @@ func (d *dnf) Setup() error {
 
 func (d *dnf) CleanCache() error {
 	_, err := osutil.SudoRunCmd(
-		true, `dnf`, `clean` ,`-y`)
+		true, `dnf`, `clean`, `-y`)
 	return err
 }
 

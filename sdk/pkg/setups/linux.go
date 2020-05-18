@@ -1,9 +1,12 @@
 package setups
 
 import (
+	"path/filepath"
+	"strings"
+
+	"github.com/getcouragenow/core-bs/sdk/pkg/common/colorutil"
 	"github.com/getcouragenow/core-bs/sdk/pkg/common/pkgutil"
 	"github.com/getcouragenow/core-bs/sdk/pkg/oses"
-	"path/filepath"
 )
 
 type DebBootstrap struct {
@@ -14,20 +17,35 @@ type RhelBootstrap struct {
 	*pkgutil.PkgUtil
 }
 
+func bsProfilePrint() string {
+	defaultIndent := 20
+	var s strings.Builder
+	s.WriteString(colorutil.ColorMagenta(strings.Repeat("―", defaultIndent*4)))
+	s.WriteRune('\n')
+	s.WriteString(colorutil.ColorYellow("Instruction"))
+	s.WriteRune('\n')
+	s.WriteString(colorutil.ColorMagenta(strings.Repeat("―", defaultIndent*4)))
+	s.WriteRune('\n')
+	s.WriteString(colorutil.ColorCyan("Please, add $HOME/.bs-profile.sh to your shell profile."))
+	s.WriteRune('\n')
+	s.WriteString(colorutil.ColorMagenta(strings.Repeat("―", defaultIndent*4)))
+	return s.String()
+}
+
 func linuxWriteProfile(u *oses.UserOsEnv) error {
 	flutterPath := filepath.Join(u.GetOsProperties().GetRoot(), "flutter", "bin")
 	dartPath := filepath.Join(flutterPath, "cache", "dart-sdk", "bin")
 	androidSdkHome := filepath.Join(u.GetOsProperties().GetRoot(), ".Android", "sdk")
 	senv := &shellEnv{
-		GoRoot: u.GetGoRoot().Path(),
-		GoPath: u.GetGoPath().Path(),
-		FlutterPath: flutterPath,
-		DartPath: dartPath,
-		JavaHome: "/usr/lib/jvm/java-8-openjdk-amd64",
-		AndroidSdkHome: androidSdkHome,
-		AndroidNdkHome: filepath.Join(androidSdkHome, "ndk-bundle"),
+		GoRoot:               u.GetGoRoot().Path(),
+		GoPath:               u.GetGoPath().Path(),
+		FlutterPath:          flutterPath,
+		DartPath:             dartPath,
+		JavaHome:             "/usr/lib/jvm/java-8-openjdk-amd64",
+		AndroidSdkHome:       androidSdkHome,
+		AndroidNdkHome:       filepath.Join(androidSdkHome, "ndk-bundle"),
 		AndroidPlatformTools: filepath.Join(androidSdkHome, "platform-tools"),
-		AndroidTools: filepath.Join(androidSdkHome, "tools"),
+		AndroidTools:         filepath.Join(androidSdkHome, "tools"),
 	}
 	return nixWriteProfile(u.GetOsProperties().GetRoot(), senv)
 }
@@ -84,12 +102,11 @@ func (r *RhelBootstrap) InstallOSPrequisites() error {
 		"git",
 		"openssh-server",
 		"gcc",
-		"java-8-openjdk",
+		"java-1.8.0-openjdk",
 		"qemu-kvm",
 		"qemu-img",
 		"virt-manager",
 		"libvirt",
-		"libvirt-python",
 		"libvirt-client",
 		"virt-install",
 		"virt-viewer",

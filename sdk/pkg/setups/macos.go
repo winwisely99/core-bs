@@ -15,15 +15,15 @@ func (m *MacBootstrap) ShellEnv() error {
 	dartPath := filepath.Join(flutterPath, "cache", "dart-sdk", "bin")
 	androidSdkHome := filepath.Join(m.Env.GetOsProperties().GetRoot(), "Library", "Android", "sdk")
 	senv := &shellEnv{
-		GoRoot: m.Env.GetGoRoot().Path(),
-		GoPath: m.Env.GetGoPath().Path(),
-		FlutterPath: flutterPath,
-		DartPath: dartPath,
-		JavaHome: "/Library/Java/JavaVirtualMachines/adoptopenjdk-12.0.2.jdk/Contents/Home",
-		AndroidSdkHome: androidSdkHome,
-		AndroidNdkHome: filepath.Join(androidSdkHome, "ndk-bundle"),
+		GoRoot:               m.Env.GetGoRoot().Path(),
+		GoPath:               m.Env.GetGoPath().Path(),
+		FlutterPath:          flutterPath,
+		DartPath:             dartPath,
+		JavaHome:             "/Library/Java/JavaVirtualMachines/adoptopenjdk-12.0.2.jdk/Contents/Home",
+		AndroidSdkHome:       androidSdkHome,
+		AndroidNdkHome:       filepath.Join(androidSdkHome, "ndk-bundle"),
 		AndroidPlatformTools: filepath.Join(androidSdkHome, "platform-tools"),
-		AndroidTools: filepath.Join(androidSdkHome, "tools"),
+		AndroidTools:         filepath.Join(androidSdkHome, "tools"),
 	}
 	return nixWriteProfile(m.Env.GetOsProperties().GetRoot(), senv)
 }

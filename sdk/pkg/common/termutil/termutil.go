@@ -1,9 +1,10 @@
 package termutil
 
 import (
-	"github.com/getcouragenow/core-bs/sdk/pkg/common/colorutil"
 	"sort"
 	"strings"
+
+	"github.com/getcouragenow/core-bs/sdk/pkg/common/colorutil"
 )
 
 const defaultIndent = 20
@@ -21,11 +22,11 @@ func (c Contents) String(title string) string {
 	var s strings.Builder
 	keys, indent := c.getKeys()
 	if title != "" {
-		s.WriteString(colorutil.ColorMagenta(strings.Repeat("=", defaultIndent * 4)))
+		s.WriteString(colorutil.ColorMagenta(strings.Repeat("―", defaultIndent*4)))
 		s.WriteRune('\n')
 		s.WriteString(colorutil.ColorYellow(strings.ToUpper(title)))
 		s.WriteRune('\n')
-		s.WriteString(colorutil.ColorMagenta(strings.Repeat("=", defaultIndent * 4)))
+		s.WriteString(colorutil.ColorMagenta(strings.Repeat("―", defaultIndent*4)))
 		s.WriteRune('\n')
 	}
 	for _, k := range keys {
@@ -43,7 +44,7 @@ func (c Contents) String(title string) string {
 			newIndent = indent
 		}
 	}
-	s.WriteString(colorutil.ColorMagenta(strings.Repeat("=", defaultIndent * 4)))
+	s.WriteString(colorutil.ColorMagenta(strings.Repeat("―", defaultIndent*4)))
 	s.WriteRune('\n')
 	return s.String()
 }

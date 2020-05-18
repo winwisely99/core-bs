@@ -36,8 +36,8 @@ jobs:
       - name: Test Info Outputs
         run: bs info
 
-      - name: Test Install gofish
-        run: bs fish -i
+      - name: Test Init
+        run: bs init -i
 
       - name: Check gofish is installed
         run: which gofish
@@ -48,5 +48,5 @@ jobs:
       - name: Run gofish uninstall
         run: bs pkg uninstall kubernetes-secret-decode
 
-      - name: Test uninstall gofish
-        run: bs fish -u
+      - name: Test uninstall everything
+        run: bs init -u

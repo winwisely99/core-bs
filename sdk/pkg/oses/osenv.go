@@ -6,14 +6,15 @@ Package oses is for getting os, user, and git information
 
 import (
 	"fmt"
-	"github.com/fishworks/gofish/pkg/lazypath"
-	"github.com/getcouragenow/core-bs/sdk/pkg/common/gitutil"
-	"github.com/getcouragenow/core-bs/sdk/pkg/common/osutil"
-	"github.com/getcouragenow/core-bs/sdk/pkg/common/termutil"
 	"os"
 	"os/user"
 	"path/filepath"
 	"runtime"
+
+	"github.com/fishworks/gofish/pkg/lazypath"
+	"github.com/getcouragenow/core-bs/sdk/pkg/common/gitutil"
+	"github.com/getcouragenow/core-bs/sdk/pkg/common/osutil"
+	"github.com/getcouragenow/core-bs/sdk/pkg/common/termutil"
 )
 
 // osProperties is the current environment for user's OS
@@ -89,17 +90,22 @@ func initGitConfig() (*gitConfig, error) {
 	if err != nil {
 		return nil, err
 	}
-	root, _ := gitutil.GitRemoteInfo(pwd)
-	if root == "" {
-		root = "Not a git dir"
+	orig := "not a git dir"
+	if gitutil.IsGitDir(pwd) {
+		root, err := gitutil.GitRemoteInfo(pwd)
+		if err != nil {
+			orig = "not a git dir"
+		}
+		orig = *root
 	}
+
 	account, err := RunCmd("git", "config", "user.email")
 	if err != nil {
 		return nil, err
 	}
 	return &gitConfig{
 		name:    *userName,
-		root:    root,
+		root:    orig,
 		account: *account,
 		osInfo:  nil,
 	}, nil

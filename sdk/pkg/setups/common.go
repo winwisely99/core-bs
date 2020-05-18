@@ -4,14 +4,18 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
+	"html/template"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"strings"
+
 	"github.com/getcouragenow/core-bs/sdk/pkg/common/gitutil"
 	"github.com/getcouragenow/core-bs/sdk/pkg/common/logger"
 	"github.com/getcouragenow/core-bs/sdk/pkg/common/osutil"
 	"github.com/getcouragenow/core-bs/sdk/pkg/common/pkgutil"
 	"github.com/getcouragenow/core-bs/sdk/pkg/oses"
-	"html/template"
-	"io/ioutil"
-	"path/filepath"
 )
 
 type shellEnv struct {
@@ -19,6 +23,7 @@ type shellEnv struct {
 	GoPath               string
 	FlutterPath          string
 	DartPath             string
+	DartHomePath         string
 	JavaHome             string
 	AndroidSdkHome       string
 	AndroidNdkHome       string
@@ -35,7 +40,7 @@ type Bootstrapper interface {
 
 var (
 	foods = []string{
-		"golang",
+		"go",
 		"minikube",
 		"kubectl",
 		"hugo",
@@ -79,6 +84,7 @@ func flatpaks(homepath string) (err error) {
 		true,
 		`flatpak`,
 		`remote-add`,
+		`--user`,
 		`--if-not-exists`,
 		`flathub`,
 		`https://flathub.org/repo/flathub.flatpakrepo`,
@@ -99,8 +105,8 @@ func flatpaks(homepath string) (err error) {
 }
 
 func flatpakInstall(pkg string) error {
-	_, err := osutil.RunCmd(true, `flatpak`,
-		`install`, `flathub`, pkg)
+	_, err := osutil.RunCmd(true, `bash -c`,
+		strings.Join([]string{`yes |`, `flatpak`, `install`, `--user`, `flathub`, pkg}, " "))
 	return err
 }
 
@@ -121,7 +127,9 @@ func setupFlutter(l *logger.Logger, homepath string) error {
 		filepath.Join(flutterDir, "bin", `flutter`),
 		`--enable-web`,
 	)
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 	_, err = osutil.RunCmd(
 		true,
 		filepath.Join(flutterDir, "bin", "cache", "dart-sdk", "bin", `pub`),
@@ -138,7 +146,7 @@ GOROOT={{ .GoRoot }}
 GOPATH={{ .GoPath }}
 FLUTTER_PATH={{ .FlutterPath }}
 DART_PATH={{ .DartPath }}
-DART_HOMEPATH={{ .DartPath }}
+DART_HOMEPATH={{ .DartHomePath }}
 JAVA_HOME={{ .JavaHome }}
 ANDROID_SDK={{ .AndroidSdkHome }}
 ANDROID_HOME={{ .AndroidSdkHome }}
@@ -151,12 +159,12 @@ export PATH=$HOME/bin:$JAVA_HOME/bin:$DART_HOMEPATH:$GOPATH/bin:$FLUTTER_PATH:$D
 `
 )
 
-func (s *shellEnv) execTemplate(b *bytes.Buffer) error{
+func (s *shellEnv) execTemplate(b *bytes.Buffer) error {
 	t, err := template.New("bs-profile.sh").Parse(unixProfileTpl)
 	if err != nil {
 		return err
 	}
-	return t.Execute(b, t)
+	return t.Execute(b, s)
 }
 
 func nixWriteProfile(homepath string, senv *shellEnv) error {
@@ -165,5 +173,6 @@ func nixWriteProfile(homepath string, senv *shellEnv) error {
 		return err
 	}
 	profilePath := filepath.Join(homepath, ".bs-profile.sh")
+	fmt.Fprintf(os.Stdout, "%s\n", bsProfilePrint())
 	return ioutil.WriteFile(profilePath, b.Bytes(), 0755)
 }

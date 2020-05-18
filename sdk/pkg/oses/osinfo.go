@@ -3,11 +3,12 @@ package oses
 import (
 	"errors"
 	"fmt"
+	"os"
+	"runtime"
+
 	"github.com/getcouragenow/core-bs/sdk/pkg/common/osutil"
 	"github.com/getcouragenow/core-bs/sdk/pkg/common/termutil"
 	m "github.com/pbnjay/memory"
-	"os"
-	"runtime"
 )
 
 // Blanket os info getter for all OSes (including windows)
@@ -78,7 +79,7 @@ func (d *DarwinOSInfo) GetHostName() string { return d.hostName }
 func (d *DarwinOSInfo) GetMemory() float64  { return d.memory }
 func (d *DarwinOSInfo) GetCores() int       { return d.cores }
 func (d *DarwinOSInfo) String() string {
-	return fmt.Sprintf("OS: %s, Kernel: %s, Platform: %s, Hostname: %s, Cores: %d, Memory: %d",
+	return fmt.Sprintf("OS: %s, Kernel: %s, Platform: %s, Hostname: %s, Cores: %d, Memory: %2.f",
 		d.osName, d.kernel, d.platform, d.hostName, d.cores, d.memory)
 }
 func (d *DarwinOSInfo) ToContent() termutil.Contents { return toContent(d) }
@@ -125,7 +126,7 @@ func (l *LinuxOSInfo) GetHostName() string { return l.hostName }
 func (l *LinuxOSInfo) GetMemory() float64  { return l.memory }
 func (l *LinuxOSInfo) GetCores() int       { return l.cores }
 func (l *LinuxOSInfo) String() string {
-	return fmt.Sprintf("OS: %s, Kernel: %s, Platform: %s, Hostname: %s, Cores: %d, Memory: %d",
+	return fmt.Sprintf("OS: %s, Kernel: %s, Platform: %s, Hostname: %s, Cores: %d, Memory: %.2f",
 		l.osName, l.kernel, l.platform, l.hostName, l.cores, l.memory)
 }
 func (l *LinuxOSInfo) ToContent() termutil.Contents { return toContent(l) }
@@ -166,12 +167,12 @@ func (w *WindowsOSInfo) GetHostName() string { return w.hostName }
 func (w *WindowsOSInfo) GetMemory() float64  { return w.memory }
 func (w *WindowsOSInfo) GetCores() int       { return w.cores }
 func (w *WindowsOSInfo) String() string {
-	return fmt.Sprintf("OS: %s, Kernel: %s, Platform: %s, Hostname: %s, Cores: %d, Memory: %d",
+	return fmt.Sprintf("OS: %s, Kernel: %s, Platform: %s, Hostname: %s, Cores: %d, Memory: %.2f",
 		w.osName, w.kernel, w.platform, w.hostName, w.cores, w.memory)
 }
 func (w *WindowsOSInfo) ToContent() termutil.Contents { return toContent(w) }
 
-// blanket implementation for Unices / *nix-like OSes 
+// blanket implementation for Unices / *nix-like OSes
 func RunCmd(cmdName string, flags ...string) (*string, error) {
 	return osutil.RunCmd(false, cmdName, flags...)
 }
